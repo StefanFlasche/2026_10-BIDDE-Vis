@@ -1,0 +1,1101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Data Visualisation in Infectious Disease Analytics & Modelling</title>
+  
+  <!-- Reveal.js Stylesheets -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/theme/black.min.css" id="theme">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --primary: #0ea5e9;
+      --primary-glow: rgba(14, 165, 233, 0.35);
+      --accent-orange: #f97316;
+      --accent-emerald: #10b981;
+      --accent-purple: #a855f7;
+      --accent-rose: #f43f5e;
+      --bg-dark: #090d16;
+      --card-bg: rgba(18, 26, 43, 0.75);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --card-border-hover: rgba(14, 165, 233, 0.5);
+      --text-muted: #94a3b8;
+      --text-main: #f8fafc;
+    }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-main);
+      overflow: hidden;
+    }
+
+    .reveal {
+      font-family: var(--font-main);
+      font-size: 26px;
+      color: var(--text-main);
+    }
+
+    /* Ambient dynamic background */
+    .bg-gradient-glow {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 15% 20%, rgba(14, 165, 233, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(168, 85, 247, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.6) 0%, transparent 100%),
+        #090d16;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* Subtle grid overlay */
+    .bg-grid {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-size: 40px 40px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* Typography */
+    .reveal h1, .reveal h2, .reveal h3, .reveal h4 {
+      font-family: var(--font-main);
+      text-transform: none;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      color: #fff;
+    }
+
+    .reveal h1 {
+      font-size: 2.8em;
+      line-height: 1.1;
+      margin-bottom: 0.3em;
+    }
+
+    .reveal h2 {
+      font-size: 2.1em;
+      line-height: 1.2;
+      margin-bottom: 0.6em;
+    }
+
+    .reveal h3 {
+      font-size: 1.5em;
+      font-weight: 700;
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .gradient-text-warm {
+      background: linear-gradient(135deg, #fb923c 0%, #f43f5e 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Glass Cards */
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.6rem 2rem;
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      text-align: left;
+    }
+
+    .glass-card:hover {
+      border-color: var(--card-border-hover);
+      box-shadow: 0 14px 40px -10px var(--primary-glow);
+    }
+
+    /* Layout Containers */
+    .slide-layout-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2.5rem;
+      align-items: center;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .slide-layout-split-wide-right {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 2.5rem;
+      align-items: center;
+      width: 100%;
+    }
+
+    .slide-layout-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    /* Image Frame */
+    .img-frame {
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 16px 40px -10px rgba(0,0,0,0.6);
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0.5rem;
+      background-clip: padding-box;
+    }
+
+    .img-frame img {
+      max-width: 100%;
+      max-height: 520px;
+      object-fit: contain;
+      border-radius: 10px;
+      margin: 0 !important;
+      display: block;
+    }
+
+    .img-caption {
+      font-size: 0.72em;
+      color: var(--text-muted);
+      margin-top: 0.6rem;
+      text-align: center;
+      font-family: var(--font-mono);
+    }
+
+    /* Badges & Pills */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0.35rem 0.9rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    .badge-primary {
+      background: rgba(14, 165, 233, 0.15);
+      border: 1px solid rgba(14, 165, 233, 0.4);
+      color: #38bdf8;
+    }
+
+    .badge-orange {
+      background: rgba(249, 115, 22, 0.15);
+      border: 1px solid rgba(249, 115, 22, 0.4);
+      color: #fb923c;
+    }
+
+    .badge-purple {
+      background: rgba(168, 85, 247, 0.15);
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      color: #c084fc;
+    }
+
+    .badge-emerald {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+    }
+
+    /* Interactive List / Focus Items */
+    .focus-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .focus-item {
+      padding: 1rem 1.4rem;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--text-muted);
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 0.95em;
+    }
+
+    .focus-item.active {
+      background: rgba(14, 165, 233, 0.12);
+      border-color: rgba(14, 165, 233, 0.6);
+      color: #fff;
+      font-weight: 700;
+      transform: translateX(8px);
+      box-shadow: 0 4px 20px -4px var(--primary-glow);
+    }
+
+    .focus-item.dimmed {
+      opacity: 0.35;
+    }
+
+    .bullet-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8em;
+      font-family: var(--font-mono);
+      flex-shrink: 0;
+    }
+
+    .focus-item.active .bullet-num {
+      background: var(--primary);
+      color: #fff;
+      font-weight: bold;
+    }
+
+    /* Grid of Practical Principles */
+    .principles-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1.1rem;
+      margin-top: 1.5rem;
+      width: 100%;
+    }
+
+    .principle-card {
+      background: rgba(18, 26, 43, 0.7);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 1.2rem 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 0.6rem;
+      transition: all 0.3s ease;
+    }
+
+    .principle-card:hover {
+      transform: translateY(-6px);
+      border-color: var(--primary);
+      background: rgba(14, 165, 233, 0.12);
+      box-shadow: 0 10px 25px -5px var(--primary-glow);
+    }
+
+    .principle-icon {
+      font-size: 1.8rem;
+      line-height: 1;
+      margin-bottom: 0.2rem;
+    }
+
+    .principle-title {
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: #f1f5f9;
+      line-height: 1.25;
+    }
+
+    .principle-sub {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      line-height: 1.2;
+    }
+
+    /* Attention Box / Callout */
+    .callout-box {
+      border-left: 4px solid var(--accent-orange);
+      background: rgba(249, 115, 22, 0.08);
+      border-radius: 0 12px 12px 0;
+      padding: 1.2rem 1.6rem;
+      margin: 1.2rem 0;
+      text-align: left;
+    }
+
+    .callout-alert {
+      border-left: 4px solid var(--accent-rose);
+      background: rgba(244, 63, 94, 0.1);
+      border-radius: 0 14px 14px 0;
+      padding: 1.8rem 2rem;
+      text-align: left;
+      position: relative;
+    }
+
+    /* Challenge Box */
+    .challenge-card {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.9) 100%);
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      border-radius: 20px;
+      padding: 2.2rem 2.8rem;
+      box-shadow: 0 20px 50px -15px rgba(168, 85, 247, 0.25);
+    }
+
+    /* Custom Timer Widget */
+    .timer-widget {
+      display: inline-flex;
+      align-items: center;
+      gap: 1.2rem;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 9999px;
+      padding: 0.5rem 1.4rem;
+      margin-top: 1.5rem;
+    }
+
+    .timer-display {
+      font-family: var(--font-mono);
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #38bdf8;
+      min-width: 70px;
+    }
+
+    .timer-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: #fff;
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .timer-btn:hover {
+      background: var(--primary);
+    }
+
+    /* Custom Header & Footer Overlay */
+    .pres-header {
+      position: fixed;
+      top: 1.4rem;
+      left: 2rem;
+      right: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 20;
+      pointer-events: none;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.35);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .pres-footer {
+      position: fixed;
+      bottom: 1.4rem;
+      left: 2rem;
+      right: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 20;
+      pointer-events: none;
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.35);
+      font-family: var(--font-mono);
+    }
+
+    .controls-hint {
+      pointer-events: auto;
+      display: flex;
+      gap: 12px;
+    }
+
+    .kbd-shortcut {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 0.7rem;
+      color: #94a3b8;
+    }
+
+    /* Navigation Progress Line */
+    .reveal .progress {
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--primary);
+    }
+
+    .reveal .progress span {
+      background: linear-gradient(90deg, #38bdf8, #818cf8, #c084fc);
+    }
+
+    /* Button link style */
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #ffffff !important;
+      padding: 0.8rem 1.6rem;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.85rem;
+      box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4);
+      transition: all 0.2s ease;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(2, 132, 199, 0.6);
+      background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    }
+
+    /* Utility text classes */
+    .text-sm { font-size: 0.8em; }
+    .text-xs { font-size: 0.65em; }
+    .text-muted { color: var(--text-muted); }
+    .text-highlight { color: #38bdf8; font-weight: 700; }
+    .font-mono { font-family: var(--font-mono); }
+    .mt-1 { margin-top: 0.5rem; }
+    .mt-2 { margin-top: 1rem; }
+    .mt-3 { margin-top: 1.5rem; }
+    .mb-1 { margin-bottom: 0.5rem; }
+  </style>
+</head>
+
+<body>
+  <!-- Ambient backdrop elements -->
+  <div class="bg-gradient-glow"></div>
+  <div class="bg-grid"></div>
+
+  <!-- Persistent UI Overlay -->
+  <header class="pres-header">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span style="width:8px; height:8px; border-radius:50%; background:#38bdf8; display:inline-block; box-shadow:0 0 8px #38bdf8;"></span>
+      <span>BIDDE • Data Visualisation Series</span>
+    </div>
+    <div>Infectious Disease Analytics & Modelling</div>
+  </header>
+
+  <footer class="pres-footer">
+    <div class="controls-hint">
+      <span><span class="kbd-shortcut">SPACE</span> / <span class="kbd-shortcut">ARROWS</span> Navigate</span>
+      <span><span class="kbd-shortcut">ESC</span> Overview</span>
+      <span><span class="kbd-shortcut">F</span> Fullscreen</span>
+    </div>
+    <div>Press <span class="kbd-shortcut">?</span> for Reveal.js Shortcuts</div>
+  </footer>
+
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- ============================================================= -->
+      <!-- SLIDE 1: HERO TITLE SLIDE -->
+      <!-- ============================================================= -->
+      <section data-auto-animate>
+        <div class="slide-layout-center">
+          
+          <h1 style="font-size: 3.2em; margin-bottom: 0.2em; font-weight: 800;">
+            Data <span class="gradient-text">Visualisation</span>
+          </h1>
+          
+          <p style="font-size: 1.25em; color: #cbd5e1; max-width: 820px; line-height: 1.4; margin-top: 0.4rem; font-weight: 400;">
+            In Infectious Disease Analytics and Modelling
+          </p>
+        </div>
+
+        <aside class="notes">
+          Welcome everyone. Today we are exploring the foundational principles and practical crafts of data visualisation tailored specifically for infectious disease analytics, epidemiological models, and scientific communication.
+        </aside>
+      </section>
+
+      <!-- ============================================================= -->
+      <!-- VERTICAL SLIDE STACK 1: WHY VISUALISE? -->
+      <!-- ============================================================= -->
+      <section>
+        
+        <!-- SLIDE 2A: Context from Stats (Gorilla) -->
+        <section data-auto-animate>
+          <h2 style="margin-bottom: 1.2rem;">Why visualise?</h2>
+          
+          <div class="slide-layout-split-wide-right">
+            <div>
+              <ul class="focus-list">
+                <li class="focus-item active">
+                  <span class="bullet-num">1</span>
+                  <div>
+                    <strong>Context spot check:</strong>
+                    <div style="font-size: 0.85em; color: #cbd5e1; margin-top: 2px;">
+                      Context is often difficult to spot from summary stats and tables alone.
+                    </div>
+                  </div>
+                </li>
+                <li class="focus-item dimmed">
+                  <span class="bullet-num">2</span>
+                  <span>To summarise complex findings</span>
+                </li>
+                <li class="focus-item dimmed">
+                  <span class="bullet-num">3</span>
+                  <span>Re-enforcing key messages of a narrative</span>
+                </li>
+              </ul>
+            </div>
+
+            <div class="img-frame">
+              <img src="media/image1.jpeg" alt="Gorilla scatter plot demonstrating hidden structure in BMI vs Steps">
+            </div>
+          </div>
+
+          <aside class="notes">
+            Summary statistics can be dangerously misleading. Looking at numbers alone (means, SDs) would never reveal that the data points actually trace out a gorilla figure. Always plot your raw data!
+          </aside>
+        </section>
+
+        <!-- SLIDE 2B: Summarise Complex Findings (PCV Forest Plot) -->
+        <section data-auto-animate>
+          <h2 style="margin-bottom: 1.2rem;">Why visualise?</h2>
+          
+          <div class="slide-layout-split-wide-right">
+            <div>
+              <ul class="focus-list">
+                <li class="focus-item dimmed">
+                  <span class="bullet-num">1</span>
+                  <span>Context sometimes difficult to spot from stats</span>
+                </li>
+                <li class="focus-item active">
+                  <span class="bullet-num">2</span>
+                  <div>
+                    <strong>Summarise complexity:</strong>
+                    <div style="font-size: 0.85em; color: #cbd5e1; margin-top: 2px;">
+                      To condense and synthesise multifaceted findings and make them interpretable at a glance.
+                    </div>
+                  </div>
+                </li>
+                <li class="focus-item dimmed">
+                  <span class="bullet-num">3</span>
+                  <span>Re-enforcing key messages of a narrative</span>
+                </li>
+              </ul>
+            </div>
+
+            <div class="img-frame">
+              <img src="media/image2.png" alt="Noninferiority trial summary comparing carriage prevalence differences">
+            </div>
+          </div>
+
+          <aside class="notes">
+            Here we see how a single concise visualization communicates effect estimates, confidence intervals, comparison thresholds, and subgroup stratifications simultaneously.
+          </aside>
+        </section>
+
+        <!-- SLIDE 2C: Re-enforcing Narrative (Model Framework) -->
+        <section data-auto-animate>
+          <h2 style="margin-bottom: 1.2rem;">Why visualise?</h2>
+          
+          <div class="slide-layout-split">
+            <div>
+              <ul class="focus-list">
+                <li class="focus-item dimmed">
+                  <span class="bullet-num">1</span>
+                  <span>Context sometimes difficult to spot from stats</span>
+                </li>
+                <li class="focus-item dimmed">
+                  <span class="bullet-num">2</span>
+                  <span>To summarise complex findings</span>
+                </li>
+                <li class="focus-item active">
+                  <span class="bullet-num">3</span>
+                  <div>
+                    <strong>Re-enforcing the narrative:</strong>
+                    <div style="font-size: 0.85em; color: #cbd5e1; margin-top: 2px;">
+                      Put the spotlight on the key methodological assumptions and findings, ideally summing to a graphical abstract of the work.
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <div class="img-frame" style="background: #ffffff; padding: 1rem;">
+              <img src="media/image3.png" alt="Model Structure schematic: Infection Model -> Disease Model -> Immunisation Model">
+            </div>
+          </div>
+
+          <aside class="notes">
+            Epidemiological models are intricate. A clean conceptual framework diagram guides the audience through every stage of your quantitative pipeline.
+          </aside>
+        </section>
+
+      </section>
+
+      <!-- ============================================================= -->
+      <!-- VERTICAL SLIDE STACK 2: HOW VISUALISE CONCEPTUALLY? -->
+      <!-- ============================================================= -->
+      <section>
+
+        <!-- SLIDE 3A: Purpose vs Distraction (LOOK AT ME) -->
+        <section data-auto-animate>
+          <h2 style="margin-bottom: 1.2rem;">How visualize conceptually?</h2>
+          
+          <div class="slide-layout-split">
+            <div>
+              <ul class="focus-list">
+                <li class="focus-item active" style="border-color: rgba(244, 63, 94, 0.6); background: rgba(244, 63, 94, 0.12);">
+                  <span class="bullet-num" style="background: #f43f5e;">1</span>
+                  <strong>Purpose vs Distraction</strong>
+                </li>
+                <li class="focus-item dimmed">
+                  <span class="bullet-num">2</span>
+                  <span>For checking vs sharing</span>
+                </li>
+                <li class="focus-item dimmed">
+                  <span class="bullet-num">3</span>
+                  <span>Narrative & Storyline</span>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <div class="callout-alert">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 0.6rem;">
+                  <span style="font-size: 1.6rem;">⚠️</span>
+                  <span style="font-size: 1.5rem; font-weight: 900; letter-spacing: 0.05em; color: #fb7185;">LOOK AT ME!</span>
+                </div>
+                <p style="font-size: 1.05rem; line-height: 1.5; color: #f8fafc; font-weight: 600; margin: 0;">
+                  "It is difficult to listen while trying to make sense of what the purpose of this illustration is."
+                </p>
+                <div style="margin-top: 1rem; font-size: 0.78rem; color: #fda4af; border-top: 1px solid rgba(244, 63, 94, 0.3); padding-top: 0.6rem;">
+                  💡 <strong>Cognitive Overload Principle:</strong> Every visual element competing for attention degrades the presenter's voice and core takeaway.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <aside class="notes">
+            When a slide has unnecessary complexity or unguided graphics, audience members stop listening to you and get lost trying to decipher the figure. Visuals must serve a singular, clear purpose.
+          </aside>
+        </section>
+
+        <!-- SLIDE 3B: For Checking vs Sharing (Datasaurus Gif) -->
+        <section data-auto-animate>
+          <h2 style="margin-bottom: 1.2rem;">How visualize conceptually?</h2>
+          
+          <div class="slide-layout-split-wide-right">
+            <div>
+              <ul class="focus-list">
+                <li class="focus-item dimmed">
+                  <span class="bullet-num">1</span>
+                  <span>Purpose vs Distraction</span>
+                </li>
+                <li class="focus-item active" style="border-color: rgba(56, 189, 248, 0.6); background: rgba(56, 189, 248, 0.12);">
+                  <span class="bullet-num">2</span>
+                  <div>
+                    <strong>For checking vs sharing:</strong>
+                    <div style="font-size: 0.85em; color: #cbd5e1; margin-top: 2px;">
+                      Exploratory diagnostic plots ≠ Explanatory publication figures.
+                    </div>
+                  </div>
+                </li>
+                <li class="focus-item dimmed">
+                  <span class="bullet-num">3</span>
+                  <span>Narrative & Storyline</span>
+                </li>
+              </ul>
+
+              <div class="glass-card mt-2" style="font-size: 0.82rem;">
+                <div style="color: #38bdf8; font-weight: 700; margin-bottom: 6px;">The Datasaurus Dozen Phenomenon</div>
+                <p style="margin: 0; color: #cbd5e1; line-height: 1.4;">
+                  All 13 configurations share identical summary statistics:<br>
+                  <code class="font-mono text-xs" style="color:#f59e0b;">X̄=54.26, Ȳ=47.83, SD_x=16.76, SD_y=26.93, r=-0.06</code>
+                </p>
+              </div>
+            </div>
+
+            <div class="img-frame" style="background: #ffffff; padding: 0.8rem;">
+              <img src="media/image4.gif" alt="Datasaurus Dozen animation showing identical statistics with drastically different geometric distributions">
+            </div>
+          </div>
+
+          <aside class="notes">
+            Exploratory visualisations ("checking") allow you to debug your code and catch data anomalies. Explanatory visualisations ("sharing") must be curated, annotated, and stripped of extraneous noise.
+          </aside>
+        </section>
+
+        <!-- SLIDE 3C: Narrative (Graphical Abstract) -->
+        <section data-auto-animate>
+          <h2 style="margin-bottom: 1.2rem;">How visualize conceptually?</h2>
+          
+          <div class="slide-layout-split-wide-right">
+            <div>
+              <ul class="focus-list">
+                <li class="focus-item dimmed">
+                  <span class="bullet-num">1</span>
+                  <span>Purpose vs Distraction</span>
+                </li>
+                <li class="focus-item dimmed">
+                  <span class="bullet-num">2</span>
+                  <span>For checking vs sharing</span>
+                </li>
+                <li class="focus-item active" style="border-color: rgba(16, 185, 129, 0.6); background: rgba(16, 185, 129, 0.12);">
+                  <span class="bullet-num" style="background: #10b981;">3</span>
+                  <div>
+                    <strong>Narrative & Storyline:</strong>
+                    <div style="font-size: 0.85em; color: #cbd5e1; margin-top: 2px;">
+                      Guiding the eye along a natural temporal or causal progression.
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <div class="img-frame" style="background: #ffffff; padding: 0.6rem;">
+              <img src="media/image5.png" alt="Graphical Abstract showing 3-stage clinical pathway: Onset -> Treatment -> Outcomes">
+            </div>
+          </div>
+
+          <aside class="notes">
+            Structure your figures like a narrative: establish the initial state, illustrate the transformation or intervention, and conclude with the measurable outcome.
+          </aside>
+        </section>
+
+      </section>
+
+      <!-- ============================================================= -->
+      <!-- SLIDE 4: HOW VISUALISE PRACTICALLY (10 GOLDEN RULES) -->
+      <!-- ============================================================= -->
+      <section>
+      <section data-auto-animate>
+        <h2>How visualize practically?</h2>
+        <p class="text-sm text-muted" style="margin-top: -0.4rem;">
+          Eleven essential design principles for infectious disease models and analytics:
+        </p>
+
+        <div class="principles-grid">
+          
+          <div class="principle-card">
+            <div class="principle-icon">📐</div>
+            <div class="principle-title">White Space</div>
+            <div class="principle-sub">De-clutter margins to give key signals room to breathe</div>
+          </div>
+
+          <div class="principle-card">
+            <div class="principle-icon">📈</div>
+            <div class="principle-title">Log Axes</div>
+            <div class="principle-sub">Crucial for exponential transmission phases & titers</div>
+          </div>
+
+          <div class="principle-card">
+            <div class="principle-icon">🎯</div>
+            <div class="principle-title">Uncertainty</div>
+            <div class="principle-sub">Always show 95% CrI / CI ribbons and sample spreads</div>
+          </div>
+
+          <div class="principle-card">
+            <div class="principle-icon">🔲</div>
+            <div class="principle-title">Multi-Panel</div>
+            <div class="principle-sub">Small multiples to isolate facets cleanly</div>
+          </div>
+
+          <div class="principle-card">
+            <div class="principle-icon">0️⃣</div>
+            <div class="principle-title">0 Inclusion in Axis</div>
+            <div class="principle-sub">Ground bar charts at zero; zoom responsibly for lines</div>
+          </div>
+
+          <div class="principle-card">
+            <div class="principle-icon">🎨</div>
+            <div class="principle-title">Color Consistency</div>
+            <div class="principle-sub">Colorblind-safe palettes; match colors across slides</div>
+          </div>
+
+          <div class="principle-card">
+            <div class="principle-icon">🌫️</div>
+            <div class="principle-title">Transparency</div>
+            <div class="principle-sub">Use alpha blending to resolve dense overplotting</div>
+          </div>
+
+          <div class="principle-card">
+            <div class="principle-icon">✨</div>
+            <div class="principle-title">Simplicity</div>
+            <div class="principle-sub">Maximise data-to-ink ratio; remove decorative 3D</div>
+          </div>
+
+          <div class="principle-card">
+            <div class="principle-icon">📍</div>
+            <div class="principle-title">Reference Points</div>
+            <div class="principle-sub">Highlight R=1, non-inferiority margins & thresholds</div>
+          </div>
+
+          <div class="principle-card">
+            <div class="principle-icon">🏷️</div>
+            <div class="principle-title">Labels, Heading, Legends, ...</div>
+            <div class="principle-sub">Clear titles, axis labels and legends so a figure stands alone</div>
+          </div>
+
+        </div>
+
+        <aside class="notes">
+          These 10 practical rules are your checklist before publishing or presenting any figure. Walk through color accessibility, multi-panel consistency, and honest axes.
+        </aside>
+      </section>
+
+      <!-- ============================================================= -->
+      <!-- SLIDES 4.1 - 4.10: 10 GOLDEN RULES EXPANDED                  -->
+      <!-- ============================================================= -->
+      <section data-auto-animate>
+        <h2>White Space</h2>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 1.25rem; max-width: 1100px; margin: 0 auto;">
+          <img src="media/whitespace_example1.jpg" alt="White Space Example 1" style="width: 48%; max-height: 420px; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+          <img src="media/whitespace_example2.jpg" alt="White Space Example 2" style="width: 48%; max-height: 420px; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+        </div>
+      </section>
+
+      <section data-auto-animate>
+        <h2>Log Axes</h2>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 1.25rem; max-width: 1100px; margin: 0 auto;">
+          <img src="media/log_axis_example1.jpg" alt="Log Axes Example 1" style="width: 48%; max-height: 420px; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+          <img src="media/log_axis_example2.jpg" alt="Log Axes Example 2" style="width: 48%; max-height: 420px; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+        </div>
+      </section>
+
+      <section data-auto-animate>
+        <h2>Uncertainty</h2>
+        <img src="media/Uncertainty_box_bar.png" alt="Distributions Example" style="max-height: 500px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+      </section>
+
+      <section data-auto-animate>
+        <h2>Multi-Panel</h2>
+        <img src="media/Multi panel.png" alt="Multi-Panel Example" style="max-height: 500px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+      </section>
+
+      <section data-auto-animate>
+        <h2>Zero Inclusion in Axis</h2>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 1.25rem; max-width: 1100px; margin: 0 auto;">
+          <img src="media/zero_axis_example1.jpg" alt="Zero Axis Example 1" style="width: 48%; max-height: 420px; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+          <img src="media/zero_axis_example2.jpg" alt="Zero Axis Example 2" style="width: 48%; max-height: 420px; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+        </div>
+      </section>
+
+      <section data-auto-animate>
+        <h2>Color Consistency</h2>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; max-width: 1200px; margin: 0 auto;">
+          <img src="media/Color_consistency_1.png" alt="Color Consistency Example 1" style="width: 32%; max-height: 420px; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+          <img src="media/Color_consistency_2.png" alt="Color Consistency Example 2" style="width: 32%; max-height: 420px; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+          <img src="media/Color_consistency_3.png" alt="Color Consistency Example 3" style="width: 32%; max-height: 420px; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+        </div>
+      </section>
+
+      <section data-auto-animate>
+        <h2>Transparency</h2>
+        <img src="media/Transparency.png" alt="Transparency Example" style="max-height: 500px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+      </section>
+
+      <section data-auto-animate>
+        <h2>Simplicity</h2>
+        <img src="media/Complexity.jpg" alt="Complexity Example" style="max-height: 500px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+      </section>
+
+      <section data-auto-animate>
+        <h2>Reference Points</h2>
+        <img src="media/Reference_Example.png" alt="Reference Points Example" style="max-height: 500px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+      </section>
+
+      <section data-auto-animate>
+        <h2>Labels, Heading, Legends, ...</h2>
+        <img src="media/Figure legend.jpeg" alt="Labels, Heading, Legends Example" style="max-height: 500px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+      </section>
+      </section>
+
+      <!-- ============================================================= -->
+      <!-- SLIDE 5: COMPETITION TIME (WORK IN PAIRS) -->
+      <!-- ============================================================= -->
+      <section data-auto-animate>
+        <h2>Hands on part</h2>
+        
+        <div class="challenge-card" style="max-width: 900px; margin: 1.5rem auto 0 auto; text-align: left;">
+          <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 1rem; margin-bottom: 1.2rem;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="font-size: 2rem;">🛠️</span>
+              <div>
+                <h3 style="margin: 0; font-size: 1.35rem; color: #f8fafc;">Challenge: "Improve the plot"</h3>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">Aim: manuscript ready illustration</span>
+              </div>
+            </div>
+            <span class="badge badge-purple" style="margin: 0;">Pair Exercise</span>
+          </div>
+
+          <p style="font-size: 0.95rem; color: #cbd5e1; line-height: 1.5; margin-bottom: 1.2rem;">
+            Inspect the provided case-study figures with your partner and optimise the illustration:
+          </p>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem;">
+            <a href="Tasks/01_ugly_model_fit.R" download class="glass-card" style="background: rgba(255,255,255,0.04); border-color: rgba(56, 189, 248, 0.3); display: block; text-decoration: none; cursor: pointer;">
+              <div style="font-size: 0.75rem; color: #38bdf8; font-weight: 700; text-transform: uppercase;">Task A ⬇</div>
+              <div style="font-size: 1.05rem; font-weight: 700; color: #fff; margin-top: 4px;">
+                Does the model fit to the data well?
+              </div>
+              <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 6px;">
+                Convey the raw data, how close the model is and the uncertainty associated with the fit.
+              </div>
+            </a>
+
+            <a href="Tasks/02_ugly_gdp_health.R" download class="glass-card" style="background: rgba(255,255,255,0.04); border-color: rgba(249, 115, 22, 0.3); display: block; text-decoration: none; cursor: pointer;">
+              <div style="font-size: 0.75rem; color: #fb923c; font-weight: 700; text-transform: uppercase;">Task B ⬇</div>
+              <div style="font-size: 1.05rem; font-weight: 700; color: #fff; margin-top: 4px;">
+                How does income relate to health across countries?
+              </div>
+              <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 6px;">
+                Convey the relationship, spread across regions and country sizes at a glance.
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <aside class="notes">
+          Give the pairs 5 to 10 minutes to discuss the prompt. Ask one or two groups to volunteer their critique and share what modifications they would make.
+        </aside>
+      </section>
+
+      <!-- ============================================================= -->
+      <!-- SLIDE 6: FURTHER READING & RESOURCES -->
+      <!-- ============================================================= -->
+      <section data-auto-animate>
+        <div class="slide-layout-center">
+          <h2 style="margin-bottom: 1.5rem;">Further Reading</h2>
+
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; max-width: 820px; width: 100%; margin-top: 1rem; text-align: left;">
+
+            <div class="glass-card" style="padding: 1.2rem 1.4rem;">
+              <div style="font-size: 0.75rem; color: var(--primary); font-weight: 700; text-transform: uppercase;">Science</div>
+              <h3 style="margin: 0.35rem 0 0.5rem 0; font-size: 1rem; color: #fff;">Designing an Effective Graphic Abstract</h3>
+              <p style="font-size: 0.78rem; color: #cbd5e1; line-height: 1.45; margin: 0 0 0.8rem 0;"> A guide on structuring graphical abstracts, managing visual hierarchy, choosing color palettes, and avoiding cognitive overload in high-impact scientific publications.</p>
+              <a href="https://www.science.org/doi/10.1126/scirobotics.abn1724" target="_blank" rel="noopener noreferrer" class="action-btn" style="font-size: 0.75rem;">Read the manuscript</a>
+            </div>
+
+            <div class="glass-card" style="padding: 1.2rem 1.4rem;">
+              <div style="font-size: 0.75rem; color: var(--primary); font-weight: 700; text-transform: uppercase;">Practical Guide</div>
+              <h3 style="margin: 0.35rem 0 0.5rem 0; font-size: 1rem; color: #fff;">Fundamentals of Data Visualization</h3>
+              <p style="font-size: 0.78rem; color: #cbd5e1; line-height: 1.45; margin: 0 0 0.8rem 0;">A hands-on guide to choosing plots, building visual hierarchy, and communicating patterns clearly.</p>
+              <a href="https://clauswilke.com/dataviz/" target="_blank" rel="noopener noreferrer" class="action-btn" style="font-size: 0.75rem;">Read the guide</a>
+            </div>
+
+            <div class="glass-card" style="padding: 1.2rem 1.4rem;">
+              <div style="font-size: 0.75rem; color: var(--primary); font-weight: 700; text-transform: uppercase;">PLoS Comp Bio</div>
+              <h3 style="margin: 0.35rem 0 0.5rem 0; font-size: 1rem; color: #fff;">Ten Simple Rules for Better Figures</h3>
+              <p style="font-size: 0.78rem; color: #cbd5e1; line-height: 1.45; margin: 0 0 0.8rem 0;">A concise checklist for readable, honest, and reproducible scientific figures.</p>
+              <a href="https://doi.org/10.1371/journal.pcbi.1003833" target="_blank" rel="noopener noreferrer" class="action-btn" style="font-size: 0.75rem;">Read the manuscript</a>
+            </div>
+
+            <div class="glass-card" style="padding: 1.2rem 1.4rem;">
+              <div style="font-size: 0.75rem; color: var(--primary); font-weight: 700; text-transform: uppercase;">Design Reference</div>
+              <h3 style="margin: 0.35rem 0 0.5rem 0; font-size: 1rem; color: #fff;">The Visual Display of Quantitative Information</h3>
+              <p style="font-size: 0.78rem; color: #cbd5e1; line-height: 1.45; margin: 0 0 0.8rem 0;">A classic reference for data density, clear comparisons, and avoiding misleading decoration.</p>
+              <a href="https://www.edwardtufte.com/book/the-visual-display-of-quantitative-information/" target="_blank" rel="noopener noreferrer" class="action-btn" style="font-size: 0.75rem;">View the book</a>
+            </div>
+
+          <div style="margin-top: 2.2rem; font-size: 0.82rem; color: var(--text-muted);">
+            Thank you! • Ready for Q&A and Discussion
+          </div>
+        </div>
+
+        <aside class="notes">
+          Highlight the Science graphic abstract reference as great follow-up reading for anyone preparing papers or grant applications.
+        </aside>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- Reveal.js & Plugins via CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/notes/notes.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/zoom/zoom.min.js"></script>
+
+  <script>
+    // Initialize Reveal.js presentation
+    Reveal.initialize({
+      hash: true,
+      slideNumber: 'c/t',
+      controls: true,
+      progress: true,
+      center: true,
+      transition: 'slide', // none/fade/slide/convex/concave/zoom
+      transitionSpeed: 'default',
+      backgroundTransition: 'fade',
+      plugins: [ RevealNotes, RevealZoom ],
+      keyboard: {
+        // custom shortcuts if needed
+      }
+    });
+
+    // Interactive Workshop Timer
+    let timerInterval = null;
+    let remainingSeconds = 300;
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60).toString().padStart(2, '0');
+      const s = (sec % 60).toString().padStart(2, '0');
+      return ;
+    }
+
+    function startTimer(seconds) {
+      clearInterval(timerInterval);
+      remainingSeconds = seconds;
+      const display = document.getElementById('timerDisplay');
+      display.textContent = formatTime(remainingSeconds);
+      display.style.color = '#38bdf8';
+
+      timerInterval = setInterval(() => {
+        remainingSeconds--;
+        if (remainingSeconds <= 0) {
+          clearInterval(timerInterval);
+          display.textContent = "00:00";
+          display.style.color = '#f43f5e';
+          // Subtle pulse notification
+          display.style.textShadow = "0 0 12px #f43f5e";
+        } else {
+          display.textContent = formatTime(remainingSeconds);
+          if (remainingSeconds < 60) {
+            display.style.color = '#fb923c';
+          }
+        }
+      }, 1000);
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      remainingSeconds = 300;
+      const display = document.getElementById('timerDisplay');
+      display.textContent = "05:00";
+      display.style.color = '#38bdf8';
+      display.style.textShadow = "none";
+    }
+  </script>
+</body>
+</html>
