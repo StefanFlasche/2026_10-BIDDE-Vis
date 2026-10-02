@@ -58,12 +58,13 @@ p2 <- whitespace_example %>%
     geom_col(width = 0.75, fill = col_good, alpha = alpha_fill) +
     geom_text(aes(label = scales::percent(Motivation)),
               hjust = 1.15, colour = "grey15", fontface = "bold", size = 5) +
-    scale_x_continuous(limits = c(0, 0.8), expand = expansion(mult = c(0, 0.02))) +
+    scale_x_continuous(labels = scales::percent, limits = c(0, 1),
+                       expand = expansion(mult = c(0, 0.02))) +
     labs(title = "Space used for data",
          subtitle = "Wide bars, labels read directly",
-         x = NULL, y = NULL) +
+         x = "Motivation", y = NULL) +
     theme_slide() +
-    theme(axis.text.x = element_blank(), panel.grid = element_blank())
+    theme(panel.grid.major.y = element_blank(), panel.grid.major.x = element_line())
 
 save_slide(p1, "media/whitespace_example1.png")
 save_slide(p2, "media/whitespace_example2.png")
@@ -286,3 +287,225 @@ p11 <- arrangeGrob(pA, pB, pC, pD, layout_matrix = rbind(c(1, 1, 1), c(2, 3, 4))
                    heights = c(1, 1.1))
 ggsave("media/multipanel_example.png", p11, width = 12, height = 7, dpi = 200,
        bg = "white")
+
+
+# transparency: overplotting hides structure, alpha reveals it --------------------
+set.seed(2)
+scatter_example <- bind_rows(
+    tibble(x = rnorm(4500, 0, 1), y = 0.6 * x + rnorm(4500, 0, 0.8)),
+    tibble(x = rnorm(500, 1.2, 0.25), y = rnorm(500, -1.2, 0.25))  # hidden cluster
+)
+scatter_base <- scatter_example %>%
+    ggplot(aes(x, y)) +
+    labs(x = "Exposure", y = "Outcome") +
+    theme_slide() +
+    theme(panel.grid.major.x = element_line(), axis.text = element_blank())
+
+p14 <- scatter_base +
+    geom_point(colour = col_good, size = 1.6, alpha = 0.08) +
+    labs(title = "Transparent points", subtitle = "The dense core and a second cluster appear")
+
+# many simulated epidemic trajectories
+spaghetti_example <- expand_grid(run = 1:200, Day = 0:120) %>%
+    mutate(R0 = rep(rlnorm(200, log(1.6), 0.12), each = 121),
+           peak_day = rep(rnorm(200, 55, 6), each = 121),
+           size = rep(rlnorm(200, log(300), 0.2), each = 121),
+           Cases = size * exp(-((Day - peak_day) / (18 / R0 * 1.6))^2))
+spag_base <- spaghetti_example %>%
+    ggplot(aes(Day, Cases, group = run)) +
+    labs(x = "Day", y = "Daily cases") +
+    theme_slide() +
+    theme(panel.grid.major.x = element_line())
+
+p16 <- spag_base +
+    geom_line(colour = col_good, linewidth = 0.6, alpha = 0.06) +
+    labs(title = "200 model runs, transparent", subtitle = "Where most runs fall becomes visible")
+
+# overlapping distributions: incubation periods of three pathogens
+incubation_example <- tibble(
+    Pathogen = factor(rep(c("Pathogen A", "Pathogen B", "Pathogen C"), c(800, 800, 800)),
+                      levels = c("Pathogen A", "Pathogen B", "Pathogen C")),
+    Days = c(rlnorm(800, log(4), 0.35), rlnorm(800, log(6), 0.3), rlnorm(800, log(5), 0.45))
+)
+p13 <- incubation_example %>%
+    ggplot(aes(Days, fill = Pathogen, colour = Pathogen)) +
+    geom_density(alpha = 0.35, linewidth = 0.8) +
+    annotate("text", x = c(2.6, 6.9, 10.5), y = c(0.3, 0.2, 0.055),
+             label = levels(incubation_example$Pathogen), colour = unname(col_region[1:3]),
+             fontface = "bold", size = 4.5, hjust = c(1, 0, 0)) +
+    scale_colour_manual(values = unname(col_region[1:3]), guide = "none") +
+    scale_fill_manual(values = unname(col_region[1:3]), guide = "none") +
+    scale_x_continuous(limits = c(0, 15)) +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
+    labs(title = "Overlapping distributions", subtitle = "All three shapes stay visible where they overlap",
+         x = "Incubation period (days)", y = NULL) +
+    theme_slide() +
+    theme(axis.text.y = element_blank())
+
+# overlapping uncertainty ribbons: two intervention scenarios
+scenario_example <- expand_grid(Scenario = c("No intervention", "School closure"), Day = 0:120) %>%
+    mutate(peak = if_else(Scenario == "No intervention", 55, 70),
+           size = if_else(Scenario == "No intervention", 300, 200),
+           width = if_else(Scenario == "No intervention", 16, 22),
+           Cases = size * exp(-((Day - peak) / width)^2),
+           lo = Cases * 0.6, hi = Cases * 1.5)
+p15 <- scenario_example %>%
+    ggplot(aes(Day, Cases, colour = Scenario, fill = Scenario)) +
+    geom_ribbon(aes(ymin = lo, ymax = hi), colour = NA, alpha = 0.3) +
+    geom_line(linewidth = 1.2) +
+    annotate("text", x = c(30, 98), y = c(330, 250), label = c("No intervention", "School closure"),
+             colour = unname(col_region[c(4, 2)]), fontface = "bold", size = 4.5) +
+    scale_colour_manual(values = unname(col_region[c(4, 2)]), guide = "none") +
+    scale_fill_manual(values = unname(col_region[c(4, 2)]), guide = "none") +
+    labs(title = "Overlapping uncertainty", subtitle = "Both scenarios and their overlap stay readable",
+         x = "Day", y = "Daily cases") +
+    theme_slide() +
+    theme(panel.grid.major.x = element_line())
+
+save_slide(p14, "media/transparency_example1.png")
+save_slide(p16, "media/transparency_example2.png")
+save_slide(p13, "media/transparency_example3.png")
+save_slide(p15, "media/transparency_example4.png")
+
+
+# labels, headings, legends: same data, default vs annotated ----------------------
+labels_data <- multipanel_example %>%
+    transmute(rgn = Region, wk = Week + c(North = -2, East = 0, South = 1, West = 2)[as.character(Region)],
+              inc_per_100k = Cases / c(North = 60, East = 45, South = 30, West = 15)[as.character(Region)] * 100) %>%
+    filter(between(wk, 1, 20))
+
+p17 <- labels_data %>%
+    ggplot(aes(wk, inc_per_100k, colour = rgn)) +
+    geom_line(linewidth = 1) +
+    scale_colour_manual(values = c(North = "#E88A85", East = "#C9605B", South = "#F2B8B5", West = "#A94742")) +
+    labs(title = "Plot 1") +
+    theme_slide() +
+    theme(plot.title = element_text(face = "plain"))
+
+p18 <- labels_data %>%
+    ggplot(aes(wk, inc_per_100k, colour = rgn)) +
+    geom_line(linewidth = 1.2, alpha = 0.9) +
+    geom_text(data = labels_data %>% slice_max(inc_per_100k, n = 1, by = rgn),
+              aes(label = rgn), hjust = 0, nudge_x = 0.4, vjust = 0, fontface = "bold", size = 4.5) +
+    scale_colour_manual(values = col_region, guide = "none") +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+    labs(title = "North peaked two weeks earlier",
+         subtitle = "Weekly incidence by region",
+         x = "Week of outbreak", y = "Cases per 100,000",
+         caption = "Simulated surveillance data") +
+    theme_slide() +
+    theme(panel.grid.major.x = element_line(),
+          plot.caption = element_text(colour = "grey45", size = rel(0.75)))
+
+save_slide(p17, "media/labels_example1.png")
+save_slide(p18, "media/labels_example2.png")
+
+
+# simplicity: everything at once on a 3d globe -----------------------------------
+set.seed(3)
+n_nodes <- 150
+to_xyz <- function(lat, lon) cbind(cos(lat) * cos(lon), cos(lat) * sin(lon), sin(lat))
+
+# view: tilt the globe towards the viewer, then project orthographically (z = depth)
+view_tilt <- 25 * pi / 180
+project <- function(m) {
+    y <- m[, 2] * cos(view_tilt) - m[, 3] * sin(view_tilt)
+    z <- m[, 2] * sin(view_tilt) + m[, 3] * cos(view_tilt)
+    tibble(px = m[, 1], py = z, depth = -y)   # depth > 0 faces the viewer
+}
+
+nodes <- tibble(id = 1:n_nodes,
+                lat = asin(runif(n_nodes, -0.6, 0.95)),
+                lon = runif(n_nodes, -pi, pi),
+                weight = rlnorm(n_nodes, 0, 1))
+node_xyz <- to_xyz(nodes$lat, nodes$lon)
+
+# routes as great circles lifted off the surface, higher for longer routes
+n_routes <- 3000
+routes <- tibble(route = 1:n_routes,
+                 from = sample(n_nodes, n_routes, replace = TRUE, prob = nodes$weight),
+                 to = sample(n_nodes, n_routes, replace = TRUE, prob = nodes$weight)) %>%
+    filter(from != to)
+steps <- seq(0, 1, length.out = 40)
+route_paths <- routes %>%
+    reframe({
+        a <- node_xyz[from, ]; b <- node_xyz[to, ]
+        omega <- acos(pmin(1, sum(a * b)))
+        pts <- t(sapply(steps, \(s) (sin((1 - s) * omega) * a + sin(s * omega) * b) / sin(omega)))
+        pts <- pts * (1 + 0.35 * omega / pi * sin(pi * steps))
+        project(pts) %>% mutate(step = steps)
+    }, .by = route) %>%
+    mutate(front = depth > 0 | px^2 + py^2 > 1)  # hidden only if behind the sphere
+
+# sphere shading: stacked discs drifting towards the light source
+shade <- tibble(k = seq(1, 0.02, length.out = 60)) %>%
+    reframe(t = seq(0, 2 * pi, length.out = 120), .by = k) %>%
+    mutate(x = k * cos(t) - 0.35 * (1 - k), y = k * sin(t) + 0.35 * (1 - k),
+           layer = match(k, unique(k)),
+           fill = colorRampPalette(c("#94A3B8", "#F8FAFC"))(60)[layer])
+
+node_proj <- project(node_xyz) %>% filter(depth > 0)
+
+p19 <- ggplot() +
+    geom_path(data = filter(route_paths, !front), aes(px, py, group = route),
+              colour = col_bad, alpha = 0.04, linewidth = 0.3) +
+    geom_polygon(data = shade, aes(x, y, group = layer, fill = fill)) +
+    scale_fill_identity() +
+    geom_path(data = filter(route_paths, front), aes(px, py, group = route),
+              colour = col_bad, alpha = 0.09, linewidth = 0.3) +
+    geom_point(data = node_proj, aes(px, py), colour = col_warn, size = 0.9, alpha = 0.8) +
+    coord_equal(xlim = c(-1.45, 1.45), ylim = c(-1.25, 1.3), clip = "off") +
+    labs(title = "Everything at once",
+         subtitle = "3,000 routes: impressive, but what is the message?") +
+    theme_void(base_size = 16) +
+    theme(plot.title = element_text(face = "bold", size = rel(1.05)),
+          plot.subtitle = element_text(colour = "grey35", margin = margin(b = 10)),
+          plot.title.position = "plot",
+          plot.background = element_rect(fill = "white", colour = NA),
+          plot.margin = margin(14, 18, 10, 14))
+
+save_slide(p19, "media/simplicity_example.png", width = 6, height = 5.5)
+
+
+# reference points: the same estimates against a -10 margin vs. against 0 -------
+# values read off the published PCV20 vs PCV13 forest plot
+reference_example <- tribble(
+    ~Serotype, ~Est, ~lo, ~hi,
+    "1", -1.4, -4.4, 1.4,    "3", -2.7, -5.8, 0.2,    "4", -2.3, -5.4, 0.6,
+    "5", -5.0, -9.6, -0.8,   "6A", -8.1, -13.0, -3.9, "6B", -8.6, -13.8, -4.0,
+    "7F", -3.2, -6.6, -0.2,  "9V", -2.7, -6.4, 0.3,   "14", -0.9, -4.4, 2.6,
+    "18C", -2.3, -5.4, 0.6,  "19A", 0.0, -2.3, 2.2,   "19F", 0.0, -1.9, 1.8,
+    "23F", -4.1, -9.4, 1.1,  "8", 6.0, 3.0, 10.0,     "10A", -33.7, -40.6, -26.7,
+    "11A", 6.5, 3.6, 10.6,   "12F", -19.2, -25.8, -12.6, "15B", 5.6, 2.4, 9.7,
+    "22F", 6.5, 3.6, 10.6,   "33F", 1.4, -3.0, 6.0
+) %>%
+    mutate(Group = if_else(row_number() <= 13, "In both vaccines", "PCV20 only"),
+           Serotype = fct_rev(fct_inorder(Serotype)))
+col_group <- c("In both vaccines" = "#6FA8DC", "PCV20 only" = "#F2B36B")
+
+reference_plot <- function(ref, ref_label) {
+    reference_example %>%
+        ggplot(aes(Est, Serotype, colour = Group)) +
+        geom_vline(xintercept = ref, linetype = "dashed", colour = "grey30", linewidth = 0.7) +
+        annotate("text", x = ref + 0.8, y = 20.6, label = ref_label, hjust = 0,
+                 colour = "grey30", size = 4) +
+        geom_linerange(aes(xmin = lo, xmax = hi), linewidth = 1.2, alpha = 0.7) +
+        geom_point(aes(fill = Group, shape = Group), size = 3.5, stroke = 1, colour = "white") +
+        scale_colour_manual(values = col_group, guide = "none") +
+        scale_fill_manual(values = col_group, name = NULL) +
+        scale_shape_manual(values = c(21, 24), name = NULL) +
+        scale_x_continuous(limits = c(-42, 12), breaks = seq(-40, 10, 10)) +
+        scale_y_discrete(expand = expansion(add = c(0.6, 1.2))) +
+        labs(x = "Difference in % responders (PCV20 - PCV13)", y = "Serotype") +
+        theme_slide(base_size = 14) +
+        theme(panel.grid.major.x = element_line(), panel.grid.major.y = element_blank(),
+              legend.position = "bottom")
+}
+
+p21 <- reference_plot(-10, "Non-inferiority margin") +
+    labs(title = "Reference at -10", subtitle = "Judged against the non-inferiority margin")
+p22 <- reference_plot(0, "No difference") +
+    labs(title = "Reference at 0", subtitle = "Most shared serotypes respond slightly less to PCV20")
+
+save_slide(p21, "media/reference_example1.png", width = 6, height = 6.5)
+save_slide(p22, "media/reference_example2.png", width = 6, height = 6.5)
